@@ -222,7 +222,7 @@ document.getElementById('supplierForm').addEventListener('submit', function (e) 
         .then(r => r.json())
         .then(data => {
             if (data.success) { location.reload(); }
-            else { msg.textContent = data.message; msg.className = 'form-msg error'; }
+            else { msg.textContent = data.message; msg.className = 'form-msg error'; showToast(data.message); }
         });
 });
 
@@ -326,6 +326,7 @@ document.getElementById('linkProductForm').addEventListener('submit', function (
             } else {
                 msg.textContent = data.message;
                 msg.className = 'form-msg error';
+                showToast(msg.textContent);
             }
         });
 });

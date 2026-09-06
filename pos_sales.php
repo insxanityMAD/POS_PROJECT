@@ -86,8 +86,9 @@ try {
             </select>
         </div>
         <div class="form-row" id="idNumberRow" style="display:none;">
-            <label>ID Number</label>
+            <label>ID Number <span style="color:var(--mrdiy-red); font-weight:800;">* Required for this discount</span></label>
             <input type="text" id="customerIdNumber" placeholder="PWD / Senior Citizen ID">
+            <div class="field-error" id="customerIdWarning" style="display:none;">⚠️ This discount cannot be applied without an ID number.</div>
         </div>
 
         <div class="form-row">
@@ -204,6 +205,7 @@ try {
             <div class="calc-row"><span>Payment Method</span><span id="confirmMethod"></span></div>
             <div class="calc-row net"><span>Total Due</span><span id="confirmTotal"></span></div>
         </div>
+        <div class="form-msg" id="confirmModalMsg" style="text-align:left;"></div>
         <div class="form-actions" style="justify-content:center; margin-top:18px;">
             <button type="button" class="btn btn-outline" id="confirmPaymentCancel">Cancel</button>
             <button type="button" class="btn btn-primary" id="confirmPaymentYes">Yes, Confirm Payment</button>
@@ -271,6 +273,7 @@ document.getElementById('voidSaleConfirmBtn').addEventListener('click', function
             } else {
                 msg.textContent = data.message;
                 msg.className = 'form-msg error';
+                showToast(data.message);
             }
         })
         .catch(() => {
@@ -278,6 +281,7 @@ document.getElementById('voidSaleConfirmBtn').addEventListener('click', function
             this.textContent = 'Yes, Void This Sale';
             msg.textContent = 'Network error. Please try again.';
             msg.className = 'form-msg error';
+            showToast('Network error. Please try again.');
         });
 });
 
@@ -460,7 +464,12 @@ discountSelect.addEventListener('change', function () {
     const opt = this.options[this.selectedIndex];
     const requiresId = opt.dataset.requiresId === '1';
     document.getElementById('idNumberRow').style.display = requiresId ? 'block' : 'none';
+    document.getElementById('customerIdWarning').style.display = 'none';
     updateSummary();
+});
+
+document.getElementById('customerIdNumber').addEventListener('input', function () {
+    if (this.value.trim()) document.getElementById('customerIdWarning').style.display = 'none';
 });
 taxSelect.addEventListener('change', updateSummary);
 
@@ -564,7 +573,7 @@ document.getElementById('confirmPaymentBtn').addEventListener('click', function 
     const msg = document.getElementById('posFormMsg');
     msg.style.display = 'none';
 
-    if (!cart.length) { msg.textContent = 'Cart is empty.'; msg.className = 'form-msg error'; return; }
+    if (!cart.length) { msg.textContent = 'Cart is empty.'; msg.className = 'form-msg error'; showToast('Your cart is empty.'); return; }
 
     const amountPaidVal = parseFloat(document.getElementById('amountPaid').value) || 0;
     const totalDue = updateSummary();
@@ -573,21 +582,37 @@ document.getElementById('confirmPaymentBtn').addEventListener('click', function 
         if (amountPaidVal <= 0) {
             msg.textContent = '⚠️ Please enter the amount received from the customer before confirming.';
             msg.className = 'form-msg error';
+            showToast('Please enter the amount received.');
             document.getElementById('amountPaid').focus();
             return;
         }
         if (amountPaidVal < totalDue) {
             msg.textContent = '⚠️ Amount received (' + money(amountPaidVal) + ') is less than the total due (' + money(totalDue) + ').';
             msg.className = 'form-msg error';
+            showToast('Amount received is less than the total due.');
             document.getElementById('amountPaid').focus();
             return;
         }
     }
 
+    // A discount that requires an ID (PWD/Senior Citizen) must have the ID number filled in
+    const selectedDiscountOpt = discountSelect.options[discountSelect.selectedIndex];
+    const discountRequiresId = discountSelect.value && selectedDiscountOpt.dataset.requiresId === '1';
+    const customerIdVal = document.getElementById('customerIdNumber').value.trim();
+    if (discountRequiresId && !customerIdVal) {
+        msg.textContent = '⚠️ This discount requires an ID number. Please enter it before confirming.';
+        msg.className = 'form-msg error';
+        document.getElementById('customerIdWarning').style.display = 'block';
+        showToast('ID number is required for this discount.');
+        document.getElementById('customerIdNumber').focus();
+        return;
+    }
+    document.getElementById('customerIdWarning').style.display = 'none';
+
     pendingSalePayload = {
         items: cart.map(i => ({ product_id: i.product_id, quantity: i.qty })),
         discount_id: discountSelect.value || null,
-        customer_id_number: document.getElementById('customerIdNumber').value,
+        customer_id_number: customerIdVal,
         tax_id: taxSelect.value || null,
         payment_method: selectedPaymentMethod,
         amount_paid: amountPaidVal,
@@ -598,6 +623,7 @@ document.getElementById('confirmPaymentBtn').addEventListener('click', function 
     document.getElementById('confirmItemsCount').textContent = totalQty + ' pc(s) / ' + cart.length + ' product' + (cart.length === 1 ? '' : 's');
     document.getElementById('confirmMethod').textContent = selectedPaymentMethod;
     document.getElementById('confirmTotal').textContent = money(totalDue);
+    document.getElementById('confirmModalMsg').style.display = 'none';
     openModal('confirmPaymentModal');
 });
 
@@ -605,8 +631,9 @@ document.getElementById('confirmPaymentCancel').addEventListener('click', () => 
 
 document.getElementById('confirmPaymentYes').addEventListener('click', function () {
     if (!pendingSalePayload) return;
-    const msg = document.getElementById('posFormMsg');
+    const modalMsg = document.getElementById('confirmModalMsg');
     const mainBtn = document.getElementById('confirmPaymentBtn');
+    modalMsg.style.display = 'none';
 
     this.disabled = true;
     this.textContent = 'Processing...';
@@ -622,23 +649,28 @@ document.getElementById('confirmPaymentYes').addEventListener('click', function 
         this.disabled = false;
         this.textContent = 'Yes, Confirm Payment';
         mainBtn.disabled = false;
-        closeModal('confirmPaymentModal');
 
         if (!data.success) {
-            msg.textContent = data.message;
-            msg.className = 'form-msg error';
+            // Keep the modal open and show the error right here, so it's impossible to miss
+            modalMsg.textContent = data.message;
+            modalMsg.className = 'form-msg error';
+            modalMsg.style.display = 'block';
+            showToast(data.message);
             return;
         }
+        closeModal('confirmPaymentModal');
         pendingSalePayload = null;
+        showToast('Sale completed successfully!', 'success');
         showReceipt(data.receipt);
     })
     .catch(() => {
         this.disabled = false;
         this.textContent = 'Yes, Confirm Payment';
         mainBtn.disabled = false;
-        closeModal('confirmPaymentModal');
-        msg.textContent = 'Network error. Please try again.';
-        msg.className = 'form-msg error';
+        modalMsg.textContent = 'Network error. Please try again.';
+        modalMsg.className = 'form-msg error';
+        modalMsg.style.display = 'block';
+        showToast('Network error. Please try again.');
     });
 });
 

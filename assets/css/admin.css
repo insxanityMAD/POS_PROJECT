@@ -573,3 +573,55 @@ a{ color:inherit; text-decoration:none; }
 .cat-breakdown-label{ display:flex; justify-content:space-between; font-size:12.5px; margin-bottom:4px; }
 .cat-breakdown-bar-track{ background:var(--page-bg); border-radius:6px; height:8px; overflow:hidden; }
 .cat-breakdown-bar-fill{ background:var(--mrdiy-red); height:100%; border-radius:6px; }
+
+/* ---------- REPORTS ---------- */
+.date-filter-row{ display:flex; gap:10px; align-items:end; flex-wrap:wrap; margin-bottom:22px; }
+.date-filter-row .form-row{ margin-bottom:0; }
+.date-filter-row input[type=date]{ border:1px solid var(--border-gray); border-radius:8px; padding:9px 12px; font-size:13.5px; }
+.trend-bars{ display:flex; align-items:flex-end; gap:6px; height:140px; margin-top:10px; }
+.trend-bar-wrap{ flex:1; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; height:100%; }
+.trend-bar{ width:100%; background:var(--mrdiy-red); border-radius:4px 4px 0 0; min-height:2px; }
+.trend-bar-label{ font-size:10px; color:var(--text-gray); margin-top:6px; white-space:nowrap; }
+.payment-breakdown-row{ display:flex; justify-content:space-between; align-items:center; padding:9px 0; border-bottom:1px solid var(--border-gray); font-size:13px; }
+.payment-breakdown-row:last-child{ border-bottom:none; }
+
+/* ---------- CHECKBOX LABELS (fixes misalignment inside .form-row) ---------- */
+.checkbox-label{
+    display:flex !important;
+    align-items:center;
+    gap:8px;
+    font-weight:400 !important;
+    margin-bottom:0 !important;
+    cursor:pointer;
+}
+.checkbox-label input[type=checkbox]{
+    width:16px; height:16px;
+    flex-shrink:0;
+    margin:0;
+}
+
+/* ---------- TOAST / BUBBLE NOTIFICATIONS ---------- */
+.toast-bubble{
+    position:fixed;
+    top:24px;
+    left:50%;
+    transform:translateX(-50%) translateY(-20px);
+    background:#fff;
+    border-radius:12px;
+    padding:14px 20px;
+    box-shadow:0 10px 30px rgba(0,0,0,.18);
+    font-size:14px;
+    font-weight:700;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    z-index:500;
+    opacity:0;
+    transition:opacity .25s ease, transform .25s ease;
+    max-width:90vw;
+    pointer-events:none;
+}
+.toast-bubble.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+.toast-bubble.toast-error{ background:#FDECEC; color:#A3131A; border:1px solid #F5B5B5; }
+.toast-bubble.toast-success{ background:#E4F5EC; color:#1E8E5A; border:1px solid #b7e3c9; }
+.toast-bubble .toast-icon{ font-size:18px; flex-shrink:0; }

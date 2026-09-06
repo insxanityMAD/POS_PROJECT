@@ -317,11 +317,13 @@ document.getElementById('savePayrollBtn').addEventListener('click', function () 
     if (!periodId || !userId) {
         msg.textContent = 'Please select a pay period and an employee.';
         msg.className = 'form-msg error';
+        showToast(msg.textContent);
         return;
     }
     if (hourlyRate <= 0 || (regularHours <= 0 && overtimeHours <= 0)) {
         msg.textContent = 'Enter a valid hourly rate and work hours.';
         msg.className = 'form-msg error';
+        showToast(msg.textContent);
         return;
     }
 
@@ -347,6 +349,7 @@ document.getElementById('savePayrollBtn').addEventListener('click', function () 
         if (!data.success) {
             msg.textContent = data.message;
             msg.className = 'form-msg error';
+            showToast(msg.textContent);
             return;
         }
         const empName = document.getElementById('employeeSelect').selectedOptions[0].textContent;
@@ -362,6 +365,7 @@ document.getElementById('savePayrollBtn').addEventListener('click', function () 
         this.textContent = 'Save Payroll Record';
         msg.textContent = 'Network error. Please try again.';
         msg.className = 'form-msg error';
+        showToast(msg.textContent);
     });
 });
 
@@ -388,7 +392,7 @@ document.getElementById('periodForm').addEventListener('submit', function (e) {
         .then(r => r.json())
         .then(data => {
             if (data.success) { location.reload(); }
-            else { msg.textContent = data.message; msg.className = 'form-msg error'; }
+            else { msg.textContent = data.message; msg.className = 'form-msg error'; showToast(data.message); }
         });
 });
 

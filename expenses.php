@@ -207,6 +207,7 @@ document.getElementById('quickExpenseForm').addEventListener('submit', function 
             } else {
                 msg.textContent = data.message;
                 msg.className = 'form-msg error';
+                showToast(msg.textContent);
             }
         });
 });
@@ -239,7 +240,7 @@ document.getElementById('editExpenseForm').addEventListener('submit', function (
         .then(r => r.json())
         .then(data => {
             if (data.success) { location.reload(); }
-            else { msg.textContent = data.message; msg.className = 'form-msg error'; }
+            else { msg.textContent = data.message; msg.className = 'form-msg error'; showToast(data.message); }
         });
 });
 

@@ -81,7 +81,8 @@ try {
             </thead>
             <tbody>
                 <?php foreach ($products as $p):
-                    $isLow = $p['stock_quantity'] <= $p['reorder_level'];
+                    $isOutOfStock = $p['stock_quantity'] <= 0;
+                    $isLow = !$isOutOfStock && $p['stock_quantity'] <= $p['reorder_level'];
                     $isExpired = $p['expiration_date'] && $p['expiration_date'] < date('Y-m-d');
                 ?>
                 <tr data-search="<?= htmlspecialchars(mb_strtolower($p['product_name'] . ' ' . $p['category_name'] . ' ' . ($p['supplier_name'] ?? '')), ENT_QUOTES, 'UTF-8') ?>">
@@ -91,7 +92,8 @@ try {
                     <td><?= $p['supplier_name'] ? htmlspecialchars($p['supplier_name'], ENT_QUOTES, 'UTF-8') : '<span style="color:var(--text-gray);">— none —</span>' ?></td>
                     <td>
                         <?= (int)$p['stock_quantity'] ?>
-                        <?php if ($isLow): ?><span class="pill low">Low</span><?php endif; ?>
+                        <?php if ($isOutOfStock): ?><span class="pill expired">Out of Stock</span>
+                        <?php elseif ($isLow): ?><span class="pill low">Low</span><?php endif; ?>
                     </td>
                     <td>₱<?= number_format((float)$p['selling_price'], 2) ?></td>
                     <td>
@@ -141,7 +143,7 @@ try {
             <?php else: foreach ($lowStockProducts as $lp): ?>
                 <div class="alert-row">
                     <span><?= htmlspecialchars($lp['product_name'], ENT_QUOTES, 'UTF-8') ?></span>
-                    <span class="qty"><?= (int)$lp['stock_quantity'] ?> / <?= (int)$lp['reorder_level'] ?></span>
+                    <span class="qty"><?= $lp['stock_quantity'] <= 0 ? 'Out of Stock' : (int)$lp['stock_quantity'] . ' / ' . (int)$lp['reorder_level'] ?></span>
                 </div>
             <?php endforeach; endif; ?>
         </div>
@@ -494,11 +496,13 @@ function submitJsonForm(form, msgEl, onSuccess) {
                 } else {
                     msgEl.textContent = data.message;
                     msgEl.className = 'form-msg error';
+                    showToast(msgEl.textContent);
                 }
             })
             .catch(() => {
                 msgEl.textContent = 'Network error. Please try again.';
                 msgEl.className = 'form-msg error';
+                showToast(msgEl.textContent);
             });
     });
 }

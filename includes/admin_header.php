@@ -33,6 +33,7 @@ $initials = mb_substr($initials, 0, 2) ?: 'AD';
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title><?= isset($pageTitle) ? htmlspecialchars($pageTitle, ENT_QUOTES, 'UTF-8') . ' - ' : '' ?>MR. DIY Admin</title>
 <link rel="stylesheet" href="assets/css/admin.css?v=<?= time() ?>">
+<script src="assets/js/toast.js?v=<?= time() ?>"></script>
 </head>
 <body>
 <div class="app-shell">
