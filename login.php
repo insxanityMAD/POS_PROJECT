@@ -1,469 +1,357 @@
 <?php
-// login.php
-// Serves the MR. DIY staff sign-in page. Logic lives in js/login.js,
-// which calls auth.php to check credentials against the pos_system database.
+declare(strict_types=1);
 session_start();
 
-// Generate a CSRF token for this session if one doesn't exist yet.
-if (empty($_SESSION["csrf_token"])) {
-    $_SESSION["csrf_token"] = bin2hex(random_bytes(32));
+// If already logged in, skip straight to the right panel
+if (!empty($_SESSION['user_id'])) {
+    header('Location: ' . ($_SESSION['role_name'] === 'Admin' ? 'admin_dashboard.php' : 'staff_panel.php'));
+    exit;
 }
-$csrfToken = $_SESSION["csrf_token"];
+
+// Flash error/old input coming back from login_process.php
+$error       = $_SESSION['login_error'] ?? '';
+$oldUsername = $_SESSION['old_username'] ?? '';
+unset($_SESSION['login_error'], $_SESSION['old_username']);
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>MR. DIY — Sign In</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sign In - MR. DIY</title>
 <style>
-  :root {
-    --yellow: #FFCC00;
-    --red: #CC0000;
-    --ink: #1A1A1A;
-    --warm-white: #FFFBF2;
-    --steel: #6B6B6B;
-    --border: #E3DED0;
-    --green: #1E7E34;
-  }
+    :root{
+        --mrdiy-yellow:#FFD400;
+        --mrdiy-red:#E4002B;
+        --mrdiy-cream:#FFF9E8;
+        --text-dark:#1A1A1A;
+        --text-gray:#6B6B6B;
+        --border-gray:#E0E0E0;
+    }
+    *{ box-sizing:border-box; margin:0; padding:0; }
+    body{
+        font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+        min-height:100vh;
+        display:flex;
+        background:#fff;
+    }
+    .auth-wrapper{
+        display:flex;
+        width:100%;
+        min-height:100vh;
+    }
 
-  * { box-sizing: border-box; }
+    /* ---------- LEFT / BRAND PANEL ---------- */
+    .brand-panel{
+        position:relative;
+        flex:1.1;
+        background:var(--mrdiy-yellow);
+        overflow:hidden;
+        display:flex;
+        flex-direction:column;
+        justify-content:space-between;
+        padding:40px 50px;
+    }
+    .brand-panel::before{
+        content:"";
+        position:absolute;
+        top:0; right:-10%;
+        width:70%;
+        height:140%;
+        background:var(--mrdiy-red);
+        transform:rotate(20deg);
+        z-index:0;
+    }
+    .brand-panel::after{
+        content:"";
+        position:absolute;
+        inset:0;
+        background-image:radial-gradient(rgba(0,0,0,0.08) 1.5px, transparent 1.5px);
+        background-size:26px 26px;
+        z-index:0;
+    }
+    .brand-top, .brand-bottom{ position:relative; z-index:1; }
+    .brand-top{
+        display:flex;
+        align-items:center;
+        gap:12px;
+        background:var(--mrdiy-cream);
+        padding:10px 18px;
+        border-radius:999px;
+        width:fit-content;
+        font-weight:700;
+        letter-spacing:.5px;
+        font-size:13px;
+        color:var(--text-dark);
+    }
+    .brand-top .icon{ font-size:18px; }
+    .brand-bottom .logo{
+        font-size:64px;
+        font-weight:900;
+        line-height:0.95;
+        color:var(--text-dark);
+        letter-spacing:-1px;
+    }
+    .brand-bottom .underline{
+        width:90px;
+        height:6px;
+        background:var(--mrdiy-red);
+        margin:14px 0 18px;
+    }
+    .brand-bottom .tagline{
+        font-size:16px;
+        font-weight:600;
+        color:var(--text-dark);
+        max-width:320px;
+        line-height:1.4;
+    }
 
-  body {
-    margin: 0;
-    font-family: 'Helvetica Neue', Arial, -apple-system, BlinkMacSystemFont, sans-serif;
-    color: var(--ink);
-    background: var(--warm-white);
-  }
+    /* ---------- RIGHT / FORM PANEL ---------- */
+    .form-panel{
+        flex:1;
+        display:flex;
+        flex-direction:column;
+        justify-content:center;
+        align-items:center;
+        padding:40px;
+        position:relative;
+    }
+    .help-link{
+        position:absolute;
+        top:28px; right:40px;
+        font-size:13px;
+        color:var(--text-gray);
+        text-decoration:none;
+    }
+    .help-link span{ color:var(--mrdiy-red); font-weight:600; }
 
-  .split {
-    display: flex;
-    min-height: 100vh;
-    width: 100%;
-  }
+    .auth-card{
+        width:100%;
+        max-width:420px;
+    }
+    .badge{
+        display:inline-flex;
+        align-items:center;
+        gap:6px;
+        background:#FDECEC;
+        color:var(--mrdiy-red);
+        font-size:12px;
+        font-weight:700;
+        padding:5px 12px;
+        border-radius:999px;
+        margin-bottom:18px;
+    }
+    .badge::before{
+        content:"";
+        width:6px; height:6px;
+        border-radius:50%;
+        background:var(--mrdiy-red);
+        display:inline-block;
+    }
+    .auth-card h1{
+        font-size:30px;
+        font-weight:800;
+        color:var(--text-dark);
+        margin-bottom:8px;
+    }
+    .auth-card p.subtitle{
+        color:var(--text-gray);
+        font-size:14.5px;
+        margin-bottom:28px;
+        line-height:1.5;
+    }
 
-  /* ---------- Brand panel ---------- */
-  .brand-panel {
-    position: relative;
-    flex: 0 0 42%;
-    background: var(--yellow);
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    padding: 40px 48px 56px;
-    min-height: 320px;
-  }
+    .alert{
+        background:#FDECEC;
+        border:1px solid #F5B5B5;
+        color:#A3131A;
+        padding:10px 14px;
+        border-radius:8px;
+        font-size:13.5px;
+        margin-bottom:18px;
+    }
 
-  .pegboard {
-    position: absolute;
-    inset: 0;
-    background-image: radial-gradient(rgba(26,26,26,0.13) 1.5px, transparent 1.5px);
-    background-size: 22px 22px;
-    opacity: 0.5;
-  }
+    .field-group{ margin-bottom:18px; }
+    .field-group label{
+        display:block;
+        font-size:13.5px;
+        font-weight:600;
+        color:var(--text-dark);
+        margin-bottom:6px;
+    }
+    .input-wrap{
+        position:relative;
+        display:flex;
+        align-items:center;
+        border:1px solid var(--border-gray);
+        border-radius:8px;
+        padding:0 14px;
+        transition:border-color .15s;
+    }
+    .input-wrap:focus-within{
+        border-color:var(--mrdiy-red);
+    }
+    .input-wrap .icon{
+        font-size:16px;
+        color:var(--text-gray);
+        margin-right:8px;
+    }
+    .input-wrap input{
+        border:none;
+        outline:none;
+        flex:1;
+        padding:12px 0;
+        font-size:14.5px;
+        color:var(--text-dark);
+        background:transparent;
+    }
+    .toggle-pass{
+        cursor:pointer;
+        color:var(--text-gray);
+        background:none;
+        border:none;
+        display:flex;
+        align-items:center;
+        padding:0;
+    }
+    .toggle-pass:hover{ color:var(--text-dark); }
 
-  .stripe {
-    position: absolute;
-    top: -20%;
-    right: -15%;
-    width: 70%;
-    height: 160%;
-    background: var(--red);
-    transform: rotate(18deg);
-  }
+    .field-error{
+        color:#A3131A;
+        font-size:12.5px;
+        margin-top:5px;
+        display:none;
+    }
 
-  .badge {
-    position: relative;
-    z-index: 1;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    align-self: flex-start;
-    background: var(--ink);
-    color: var(--yellow);
-    font-size: 12px;
-    font-weight: 800;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    padding: 8px 14px;
-    border-radius: 999px;
-  }
+    .row-between{
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+        margin-bottom:22px;
+        font-size:13.5px;
+    }
+    .remember{ display:flex; align-items:center; gap:8px; color:var(--text-dark); }
+    .row-between a{ color:var(--mrdiy-red); text-decoration:none; font-weight:600; }
 
-  .badge .icon {
-    font-size: 14px;
-  }
+    .btn-signin{
+        width:100%;
+        background:var(--mrdiy-red);
+        color:#fff;
+        border:none;
+        padding:14px;
+        border-radius:8px;
+        font-size:16px;
+        font-weight:700;
+        cursor:pointer;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        gap:8px;
+        transition:background .15s, opacity .15s;
+    }
+    .btn-signin:hover{ background:#c40025; }
+    .btn-signin:disabled{ opacity:.7; cursor:not-allowed; }
 
-  .brand-content {
-    position: relative;
-    z-index: 1;
-  }
+    .signup-link{
+        text-align:center;
+        margin-top:22px;
+        font-size:14px;
+        color:var(--text-gray);
+    }
+    .signup-link a{ color:var(--mrdiy-red); font-weight:700; text-decoration:none; }
 
-  .brand-title {
-    font-family: 'Arial Black', Arial, sans-serif;
-    font-weight: 900;
-    font-size: 64px;
-    line-height: 0.95;
-    letter-spacing: -1px;
-    color: var(--ink);
-    margin: 0;
-  }
+    .footer-links{
+        text-align:center;
+        margin-top:36px;
+        font-size:12px;
+        color:var(--text-gray);
+    }
+    .footer-links a{ color:var(--text-gray); text-decoration:underline; margin:0 4px; }
 
-  .brand-underline {
-    width: 64px;
-    height: 6px;
-    background: var(--red);
-    margin: 18px 0 22px;
-    border-radius: 3px;
-  }
-
-  .brand-footer {
-    position: relative;
-    z-index: 1;
-    font-size: 15px;
-    font-weight: 600;
-    color: var(--ink);
-    max-width: 260px;
-    line-height: 1.4;
-  }
-
-  /* ---------- Form panel ---------- */
-  .form-panel {
-    flex: 1 1 58%;
-    display: flex;
-    flex-direction: column;
-    background: var(--warm-white);
-  }
-
-  .top-bar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 28px 48px 0;
-    font-size: 13px;
-  }
-
-  .top-bar a {
-    color: var(--red);
-    font-weight: 700;
-    text-decoration: none;
-  }
-
-  .top-bar .need-help {
-    color: var(--steel);
-  }
-
-  .form-center {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 24px 24px 60px;
-  }
-
-  .card {
-    width: 100%;
-    max-width: 380px;
-    background: #FFFFFF;
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 36px 32px;
-    box-shadow: 0 1px 2px rgba(26,26,26,0.04);
-  }
-
-  .member-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    background: #F0EEE6;
-    color: var(--ink);
-    font-size: 11px;
-    font-weight: 800;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-    padding: 5px 10px;
-    border-radius: 999px;
-    margin-bottom: 16px;
-  }
-
-  .member-badge::before {
-    content: "";
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: var(--red);
-    display: inline-block;
-  }
-
-  .role-group {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 22px;
-    background: #F0EEE6;
-    padding: 4px;
-    border-radius: 8px;
-  }
-
-  .role-btn {
-    flex: 1;
-    padding: 10px 8px;
-    font-size: 13px;
-    font-weight: 700;
-    border-radius: 6px;
-    border: none;
-    background: transparent;
-    color: var(--steel);
-    cursor: pointer;
-    font-family: inherit;
-  }
-
-  .role-btn.active {
-    background: var(--ink);
-    color: var(--yellow);
-  }
-
-  h1 {
-    font-size: 26px;
-    font-weight: 800;
-    margin: 0 0 8px 0;
-  }
-
-  .subheading {
-    font-size: 14px;
-    line-height: 1.5;
-    color: var(--steel);
-    margin: 0 0 26px 0;
-  }
-
-  .field {
-    margin-bottom: 18px;
-  }
-
-  label {
-    display: block;
-    font-size: 13px;
-    font-weight: 700;
-    margin-bottom: 6px;
-  }
-
-  .input-wrap {
-    position: relative;
-    display: flex;
-    align-items: center;
-  }
-
-  .input-wrap .icon {
-    position: absolute;
-    left: 12px;
-    font-size: 15px;
-    color: var(--steel);
-    pointer-events: none;
-  }
-
-  input {
-    width: 100%;
-    padding: 12px 14px 12px 36px;
-    font-size: 15px;
-    border-radius: 8px;
-    border: 1.5px solid var(--border);
-    background: #FFFFFF;
-    color: var(--ink);
-    font-family: inherit;
-  }
-
-  input.error {
-    border-color: var(--red);
-  }
-
-  .toggle-visibility {
-    position: absolute;
-    right: 10px;
-    background: none;
-    border: none;
-    cursor: pointer;
-    font-size: 15px;
-    color: var(--steel);
-    padding: 4px;
-  }
-
-  .error-text {
-    margin-top: 6px;
-    font-size: 13px;
-    color: var(--red);
-    font-weight: 600;
-    display: none;
-  }
-
-  .error-text.show { display: block; }
-
-  .form-error-box {
-    background: #FCEBEB;
-    border: 1px solid var(--red);
-    color: var(--red);
-    font-size: 13px;
-    font-weight: 600;
-    padding: 10px 12px;
-    border-radius: 6px;
-    margin-bottom: 18px;
-    display: none;
-  }
-
-  .form-error-box.show { display: block; }
-
-  .form-error-box.success {
-    background: #E9F7EF;
-    border: 1px solid var(--green);
-    color: var(--green);
-  }
-
-  .submit {
-    width: 100%;
-    padding: 14px;
-    font-size: 15px;
-    font-weight: 800;
-    color: var(--warm-white);
-    background: var(--red);
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    font-family: inherit;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-  }
-
-  .submit:disabled {
-    opacity: 0.7;
-    cursor: not-allowed;
-  }
-
-  .legal-footer {
-    text-align: center;
-    font-size: 12px;
-    color: var(--steel);
-    padding-bottom: 28px;
-  }
-
-  .legal-footer a {
-    color: var(--steel);
-    text-decoration: none;
-  }
-
-  .legal-footer a:hover {
-    text-decoration: underline;
-  }
-
-  input:focus-visible,
-  .submit:focus-visible {
-    outline: 3px solid var(--ink);
-    outline-offset: 2px;
-  }
-
-  @media (max-width: 760px) {
-    .split { flex-direction: column; }
-    .brand-panel { min-height: 220px; padding: 28px 24px 32px; }
-    .brand-title { font-size: 42px; }
-    .top-bar { padding: 20px 24px 0; }
-    .form-center { padding: 24px 16px 40px; }
-  }
+    @media (max-width:900px){
+        .brand-panel{ display:none; }
+        .form-panel{ padding:24px; }
+    }
 </style>
 </head>
 <body>
 
-  <div class="split">
-    <!-- Brand panel -->
+<div class="auth-wrapper">
+
+    <!-- LEFT BRAND PANEL -->
     <div class="brand-panel">
-      <div class="pegboard" aria-hidden="true"></div>
-      <div class="stripe" aria-hidden="true"></div>
-
-      <div class="badge">
-        <span class="icon">🔒</span> Staff Portal — Internal Use Only
-      </div>
-
-      <div class="brand-content">
-        <div class="brand-title">MR.<br />DIY</div>
-        <div class="brand-underline"></div>
-      </div>
-
-      <div class="brand-footer">
-        For employees only. Unauthorized access is prohibited.
-      </div>
-    </div>
-
-    <!-- Form panel -->
-    <div class="form-panel">
-      <div class="top-bar">
-        <span class="need-help">Need help?</span>
-        <a href="#">Contact IT support</a>
-      </div>
-
-      <div class="form-center">
-        <div class="card">
-          <div class="member-badge">Employee sign in</div>
-          <h1>Welcome back</h1>
-          <p class="subheading">Select your role and sign in to access the POS system.</p>
-
-          <div class="role-group" role="radiogroup" aria-label="Select role" id="roleGroup">
-            <button type="button" class="role-btn active" role="radio" aria-checked="true" data-role="Admin">Admin</button>
-            <button type="button" class="role-btn" role="radio" aria-checked="false" data-role="Manager">Manager</button>
-            <button type="button" class="role-btn" role="radio" aria-checked="false" data-role="Cashier">Cashier</button>
-          </div>
-
-          <form id="loginForm" novalidate>
-            <input type="hidden" id="csrfToken" value="<?php echo htmlspecialchars($csrfToken, ENT_QUOTES, 'UTF-8'); ?>" />
-
-            <div class="field">
-              <label for="username">Username</label>
-              <div class="input-wrap">
-                <span class="icon">👤</span>
-                <input
-                  id="username"
-                  name="username"
-                  type="text"
-                  autocomplete="username"
-                  placeholder="e.g. j.delacruz"
-                  minlength="3"
-                  maxlength="50"
-                  pattern="[A-Za-z0-9._-]+"
-                  required
-                />
-              </div>
-              <p class="error-text" id="username-error">Enter your username.</p>
-            </div>
-
-            <div class="field">
-              <label for="password">Password</label>
-              <div class="input-wrap">
-                <span class="icon">🔒</span>
-                <input
-                  id="password"
-                  name="password"
-                  type="password"
-                  autocomplete="current-password"
-                  placeholder="••••••••"
-                  maxlength="255"
-                  required
-                />
-                <button type="button" class="toggle-visibility" id="toggleVisibility" aria-label="Show password">👁️</button>
-              </div>
-              <p class="error-text" id="password-error">Enter your password.</p>
-            </div>
-
-            <div class="form-error-box" id="formError" role="alert"></div>
-
-            <button type="submit" class="submit" id="submitBtn">Sign in as Admin →</button>
-          </form>
+        <div class="brand-top"><span class="icon">🛠️</span> EVERYTHING YOU NEED</div>
+        <div class="brand-bottom">
+            <div class="logo">MR.<br>DIY</div>
+            <div class="underline"></div>
+            <p class="tagline">Always low prices. Always ready for your next project.</p>
         </div>
-      </div>
-
-      <div class="legal-footer">
-        Secure sign in · <a href="#">Privacy</a> · <a href="#">Terms</a>
-      </div>
     </div>
-  </div>
 
-  <script src="js/login.js"></script>
+    <!-- RIGHT FORM PANEL -->
+    <div class="form-panel">
+        <a href="#" class="help-link">Need help? <span>Contact support</span></a>
 
+        <div class="auth-card">
+            <div class="badge">MEMBER ACCOUNT</div>
+            <h1>Welcome back</h1>
+            <p class="subtitle">Sign in to view your orders, rewards and saved projects.</p>
+
+            <?php if ($error): ?>
+                <div class="alert"><?= htmlspecialchars($error, ENT_QUOTES, 'UTF-8') ?></div>
+            <?php endif; ?>
+
+            <form id="loginForm" action="login_process.php" method="POST" novalidate>
+
+                <div class="field-group">
+                    <label for="username">Username</label>
+                    <div class="input-wrap">
+                        <span class="icon">👤</span>
+                        <input type="text" id="username" name="username" placeholder="Enter your username"
+                               value="<?= htmlspecialchars($oldUsername, ENT_QUOTES, 'UTF-8') ?>" required autocomplete="username">
+                    </div>
+                    <div class="field-error" id="usernameError">Please enter your username.</div>
+                </div>
+
+                <div class="field-group">
+                    <label for="password">Password</label>
+                    <div class="input-wrap">
+                        <span class="icon">🔒</span>
+                        <input type="password" id="password" name="password" placeholder="••••••••" required autocomplete="current-password">
+                        <button type="button" class="toggle-pass" id="togglePass" aria-label="Show password">
+                            <svg id="eyeOpen" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                <circle cx="12" cy="12" r="3"></circle>
+                            </svg>
+                            <svg id="eyeClosed" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none;">
+                                <path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a18.5 18.5 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                                <line x1="1" y1="1" x2="23" y2="23"></line>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="field-error" id="passwordError">Password must be at least 6 characters.</div>
+                </div>
+
+                <div class="row-between">
+                    <label class="remember">
+                        <input type="checkbox" name="remember" id="remember"> Remember me
+                    </label>
+                    <a href="forgot_password.php">Forgot password?</a>
+                </div>
+
+                <button type="submit" class="btn-signin" id="submitBtn">Sign in <span>→</span></button>
+            </form>
+
+            <div class="signup-link">New to MR. DIY? <a href="register.php">Create an account</a></div>
+
+            <div class="footer-links">
+                Secure sign in &nbsp;·&nbsp; <a href="privacy.php">Privacy</a> &nbsp;·&nbsp; <a href="terms.php">Terms</a>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script src="assets/js/login.js"></script>
 </body>
 </html>
