@@ -567,3 +567,9 @@ a{ color:inherit; text-decoration:none; }
 .linked-product-row:last-child{ border-bottom:none; }
 .linked-product-row .lp-name{ font-weight:700; }
 .linked-product-row .lp-meta{ color:var(--text-gray); font-size:12px; }
+
+/* ---------- EXPENSE CATEGORY BREAKDOWN ---------- */
+.cat-breakdown-row{ margin-bottom:12px; }
+.cat-breakdown-label{ display:flex; justify-content:space-between; font-size:12.5px; margin-bottom:4px; }
+.cat-breakdown-bar-track{ background:var(--page-bg); border-radius:6px; height:8px; overflow:hidden; }
+.cat-breakdown-bar-fill{ background:var(--mrdiy-red); height:100%; border-radius:6px; }
