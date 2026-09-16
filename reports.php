@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 $pageTitle = 'Reports';
+$allowedRoles = ['Admin', 'Manager'];
 require_once __DIR__ . '/includes/admin_header.php';
 
 // ---------- Shared date range filter (Sales / Discounted Sales / Losses / Income Statement) ----------

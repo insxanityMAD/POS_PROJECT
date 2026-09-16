@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 $pageTitle = 'Payroll';
+$allowedRoles = ['Admin', 'Manager'];
 require_once __DIR__ . '/includes/admin_header.php';
 
 try {
@@ -72,6 +73,7 @@ try {
                 <div class="form-row"><label>Regular Hours</label><input type="number" step="0.5" min="0" id="regularHours" value="0"></div>
                 <div class="form-row"><label>Overtime Hours <span style="color:var(--text-gray); font-weight:400;">(x1.25 rate)</span></label><input type="number" step="0.5" min="0" id="overtimeHours" value="0"></div>
             </div>
+            <div class="field-error" id="hoursWarning" style="display:none; margin-bottom:14px;">⚠️ This employee has 0 hours logged. Enter their actual worked hours before saving — payroll cannot be processed for someone who did not work.</div>
 
             <div class="calc-box">
                 <div class="calc-row"><span>Gross Pay</span><span id="grossPayDisplay">₱0.00</span></div>
@@ -280,11 +282,24 @@ function recalc() {
     document.getElementById('grossPaySummary').textContent = money(gross);
     document.getElementById('totalDeductionsDisplay').textContent = '-' + money(totalDed);
     document.getElementById('netPayDisplay').textContent = money(net);
+
+    checkHoursValidity();
+}
+
+function checkHoursValidity() {
+    const reg = parseFloat(document.getElementById('regularHours').value) || 0;
+    const ot = parseFloat(document.getElementById('overtimeHours').value) || 0;
+    const rate = parseFloat(document.getElementById('hourlyRate').value) || 0;
+    const noHours = reg <= 0 && ot <= 0;
+
+    document.getElementById('hoursWarning').style.display = noHours ? 'block' : 'none';
+    document.getElementById('savePayrollBtn').disabled = noHours || rate <= 0;
 }
 
 ['hourlyRate', 'regularHours', 'overtimeHours'].forEach(id => {
     document.getElementById(id).addEventListener('input', recalc);
 });
+checkHoursValidity(); // run once on page load so the button starts correctly disabled
 
 // ---------- Deduction rows ----------
 function addDeductionRow(name = '', amount = '') {

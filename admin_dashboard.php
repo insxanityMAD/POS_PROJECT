@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 $pageTitle = 'Dashboard';
+$allowedRoles = ['Admin', 'Manager'];
 require_once __DIR__ . '/includes/admin_header.php';
 
 // ---------- Live stats ----------
@@ -68,6 +69,25 @@ if ($currentHour < 12) {
 } else {
     $greeting = 'Good evening';
 }
+
+$isAdmin = ($_SESSION['role_name'] ?? '') === 'Admin';
+
+$quickActions = $isAdmin
+    ? [
+        ['manage_users.php', '👥', 'Users', 'Manage access', true],
+        ['manage_products.php', '📦', 'Products', 'Update catalog', false],
+        ['manage_suppliers.php', '🚚', 'Suppliers', 'Vendor directory', false],
+        ['manage_tax.php', '%', 'Tax', 'Configure rates', false],
+        ['manage_discounts.php', '🏷️', 'Discounts', 'Create promotion', false],
+        ['manage_qr_payments.php', '📱', 'QR payments', 'Payment settings', false],
+    ]
+    : [
+        ['pos_sales.php', '🛒', 'POS', 'Start a sale', true],
+        ['inventory.php', '📦', 'Inventory', 'View & restock', false],
+        ['manage_suppliers.php', '🚚', 'Suppliers', 'Vendor directory', false],
+        ['payroll.php', '💵', 'Payroll', 'Process pay', false],
+        ['reports.php', '📈', 'Reports', 'View reports', false],
+    ];
 ?>
 <div class="page-eyebrow">OPERATIONS OVERVIEW</div>
 <div class="page-header">
@@ -97,6 +117,7 @@ if ($currentHour < 12) {
         <div class="stat-sub up"><?= $productsAddedThisMonth ?> added this month</div>
     </div>
 
+    <?php if ($isAdmin): ?>
     <div class="stat-card">
         <div class="stat-card-top">
             <span class="label">User accounts</span>
@@ -105,6 +126,7 @@ if ($currentHour < 12) {
         <div class="stat-value"><?= number_format($totalUsers) ?></div>
         <div class="stat-sub"><?= $activeUsers ?> currently active</div>
     </div>
+    <?php endif; ?>
 
     <div class="stat-card">
         <div class="stat-card-top">
@@ -125,30 +147,12 @@ if ($currentHour < 12) {
             </div>
         </div>
         <div class="quick-grid">
-            <a href="manage_users.php" class="quick-action highlight">
-                <div class="quick-action-top"><div class="quick-action-icon">👥</div>↗</div>
-                <div><div class="qa-title">Users</div><div class="qa-sub">Manage access</div></div>
+            <?php foreach ($quickActions as [$href, $icon, $title, $sub, $highlight]): ?>
+            <a href="<?= htmlspecialchars($href, ENT_QUOTES, 'UTF-8') ?>" class="quick-action<?= $highlight ? ' highlight' : '' ?>">
+                <div class="quick-action-top"><div class="quick-action-icon"><?= $icon ?></div>↗</div>
+                <div><div class="qa-title"><?= htmlspecialchars($title, ENT_QUOTES, 'UTF-8') ?></div><div class="qa-sub"><?= htmlspecialchars($sub, ENT_QUOTES, 'UTF-8') ?></div></div>
             </a>
-            <a href="manage_products.php" class="quick-action">
-                <div class="quick-action-top"><div class="quick-action-icon">📦</div>↗</div>
-                <div><div class="qa-title">Products</div><div class="qa-sub">Update catalog</div></div>
-            </a>
-            <a href="manage_suppliers.php" class="quick-action">
-                <div class="quick-action-top"><div class="quick-action-icon">🚚</div>↗</div>
-                <div><div class="qa-title">Suppliers</div><div class="qa-sub">Vendor directory</div></div>
-            </a>
-            <a href="manage_tax.php" class="quick-action">
-                <div class="quick-action-top"><div class="quick-action-icon">%</div>↗</div>
-                <div><div class="qa-title">Tax</div><div class="qa-sub">Configure rates</div></div>
-            </a>
-            <a href="manage_discounts.php" class="quick-action">
-                <div class="quick-action-top"><div class="quick-action-icon">🏷️</div>↗</div>
-                <div><div class="qa-title">Discounts</div><div class="qa-sub">Create promotion</div></div>
-            </a>
-            <a href="manage_qr_payments.php" class="quick-action">
-                <div class="quick-action-top"><div class="quick-action-icon">📱</div>↗</div>
-                <div><div class="qa-title">QR payments</div><div class="qa-sub">Payment settings</div></div>
-            </a>
+            <?php endforeach; ?>
         </div>
     </div>
 
@@ -158,7 +162,7 @@ if ($currentHour < 12) {
                 <h2>System activity</h2>
                 <p>Latest updates from your team.</p>
             </div>
-            <a href="logs.php" class="view-all">View all logs</a>
+            <?php if ($isAdmin): ?><a href="logs.php" class="view-all">View all logs</a><?php endif; ?>
         </div>
 
         <?php if (empty($recentActivity) && $lowStock === 0): ?>

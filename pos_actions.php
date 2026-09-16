@@ -1,5 +1,6 @@
 <?php
 declare(strict_types=1);
+$allowedRoles = ['Admin', 'Manager', 'Cashier'];
 require_once __DIR__ . '/includes/admin_guard.php';
 require_once __DIR__ . '/includes/log_helper.php';
 
@@ -201,8 +202,12 @@ try {
             respond(true, '', ['sales' => $stmt->fetchAll()]);
         }
 
-        // ---------- Void a completed sale (Admin only) ----------
+        // ---------- Void a completed sale (Admin/Manager only) ----------
         case 'void_sale': {
+            if (!in_array($_SESSION['role_name'] ?? '', ['Admin', 'Manager'], true)) {
+                respond(false, 'Only an Admin or Manager can void a sale.');
+            }
+
             $saleId = (int)($_POST['sale_id'] ?? 0);
             $reason = trim($_POST['reason'] ?? '') ?: null;
             $userId = (int)$_SESSION['user_id'];

@@ -293,9 +293,9 @@ unset($_SESSION['login_error'], $_SESSION['old_username']);
         <a href="#" class="help-link">Need help? <span>Contact support</span></a>
 
         <div class="auth-card">
-            <div class="badge">MEMBER ACCOUNT</div>
+            <div class="badge">STAFF LOGIN</div>
             <h1>Welcome back</h1>
-            <p class="subtitle">Sign in to view your orders, rewards and saved projects.</p>
+            <p class="subtitle">Sign in with your staff account to access the POS system.</p>
 
             <?php if ($error): ?>
                 <div class="alert"><?= htmlspecialchars($error, ENT_QUOTES, 'UTF-8') ?></div>
@@ -336,16 +336,15 @@ unset($_SESSION['login_error'], $_SESSION['old_username']);
                     <label class="remember">
                         <input type="checkbox" name="remember" id="remember"> Remember me
                     </label>
-                    <a href="forgot_password.php">Forgot password?</a>
                 </div>
 
                 <button type="submit" class="btn-signin" id="submitBtn">Sign in <span>→</span></button>
             </form>
 
-            <div class="signup-link">New to MR. DIY? <a href="register.php">Create an account</a></div>
+            <div class="signup-link">Forgot your password, or need an account? Contact your administrator.</div>
 
             <div class="footer-links">
-                Secure sign in &nbsp;·&nbsp; <a href="privacy.php">Privacy</a> &nbsp;·&nbsp; <a href="terms.php">Terms</a>
+                Secure sign in
             </div>
         </div>
     </div>

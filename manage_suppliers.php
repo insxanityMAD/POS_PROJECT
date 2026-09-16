@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 $pageTitle = 'Suppliers';
+$allowedRoles = ['Admin', 'Manager'];
 require_once __DIR__ . '/includes/admin_header.php';
 
 try {

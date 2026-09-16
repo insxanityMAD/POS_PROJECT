@@ -35,7 +35,7 @@ try {
                 "INSERT INTO users (role_id, username, password, full_name, email, status)
                  VALUES (?,?,?,?,?, 'Active')"
             );
-            $stmt->execute([$roleId, $username, $password, $fullName, $email]);
+            $stmt->execute([$roleId, $username, password_hash($password, PASSWORD_DEFAULT), $fullName, $email]);
             $newId = (int)$pdo->lastInsertId();
 
             logAction($pdo, $_SESSION['user_id'], 'CREATE', 'Users', $newId, "Created user account \"$username\" ($fullName)");
@@ -63,7 +63,7 @@ try {
                 $stmt = $pdo->prepare(
                     "UPDATE users SET role_id=?, username=?, full_name=?, email=?, password=? WHERE user_id = ?"
                 );
-                $stmt->execute([$roleId, $username, $fullName, $email, $password, $userId]);
+                $stmt->execute([$roleId, $username, $fullName, $email, password_hash($password, PASSWORD_DEFAULT), $userId]);
             } else {
                 $stmt = $pdo->prepare(
                     "UPDATE users SET role_id=?, username=?, full_name=?, email=? WHERE user_id = ?"

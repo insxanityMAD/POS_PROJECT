@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 $pageTitle = 'POS / Sales';
+$allowedRoles = ['Admin', 'Manager', 'Cashier'];
 require_once __DIR__ . '/includes/admin_header.php';
 
 try {
@@ -160,7 +161,7 @@ try {
                 <td>₱<?= number_format((float)$sale['total_amount'], 2) ?></td>
                 <td><span class="pill <?= $sale['sale_status'] === 'Completed' ? 'active' : 'inactive' ?>"><?= htmlspecialchars($sale['sale_status'], ENT_QUOTES, 'UTF-8') ?></span></td>
                 <td>
-                    <?php if ($sale['sale_status'] === 'Completed'): ?>
+                    <?php if ($sale['sale_status'] === 'Completed' && in_array($_SESSION['role_name'] ?? '', ['Admin', 'Manager'], true)): ?>
                         <button class="btn-danger-text js-void-sale" data-id="<?= $sale['sale_id'] ?>" data-receipt="<?= htmlspecialchars($sale['receipt_number'], ENT_QUOTES, 'UTF-8') ?>">Void</button>
                     <?php endif; ?>
                 </td>
@@ -235,6 +236,7 @@ let cart = [];
 let selectedPaymentMethod = 'Cash';
 
 const money = n => '₱' + Number(n).toFixed(2);
+const escapeHtml = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
 function openModal(id) { document.getElementById(id).classList.add('open'); }
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
@@ -336,10 +338,10 @@ function renderSearchResults(products) {
         return;
     }
     searchResults.innerHTML = products.map(p => `
-        <div class="search-result-item ${p.stock_quantity <= 0 ? 'disabled' : ''}" data-product='${JSON.stringify(p)}'>
+        <div class="search-result-item ${p.stock_quantity <= 0 ? 'disabled' : ''}" data-product='${escapeHtml(JSON.stringify(p))}'>
             <div>
-                <div class="sr-name">${p.product_name}</div>
-                <div class="sr-meta">${p.barcode} · Stock: ${p.stock_quantity}${p.stock_quantity <= 0 ? ' (Out of stock)' : ''}</div>
+                <div class="sr-name">${escapeHtml(p.product_name)}</div>
+                <div class="sr-meta">${escapeHtml(p.barcode)} · Stock: ${p.stock_quantity}${p.stock_quantity <= 0 ? ' (Out of stock)' : ''}</div>
             </div>
             <div class="sr-price">${money(p.selling_price)}</div>
         </div>
@@ -428,7 +430,7 @@ function renderCart() {
 
     body.innerHTML = cart.map((item, idx) => `
         <tr>
-            <td>${item.product_name}</td>
+            <td>${escapeHtml(item.product_name)}</td>
             <td><input type="number" class="qty-input" min="1" max="${item.stock_quantity}" value="${item.qty}" data-idx="${idx}"></td>
             <td>${money(item.price)}</td>
             <td>${money(item.price * item.qty)}</td>
@@ -676,7 +678,7 @@ document.getElementById('confirmPaymentYes').addEventListener('click', function 
 
 function showReceipt(r) {
     const itemsHtml = r.items.map(i => `
-        <div class="receipt-line"><span>${i.product_name} x${i.quantity}</span><span>${money(i.subtotal)}</span></div>
+        <div class="receipt-line"><span>${escapeHtml(i.product_name)} x${i.quantity}</span><span>${money(i.subtotal)}</span></div>
     `).join('');
     const totalItems = r.items.reduce((sum, i) => sum + i.quantity, 0);
     const totalLines = r.items.length;
