@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 $pageTitle = 'Logs';
-require_once __DIR__ . '/includes/admin_header.php';
+require_once __DIR__ . '/../../includes/admin_header.php';
 
 try {
     $logs = $pdo->query(
@@ -107,4 +107,4 @@ document.getElementById('logTableSearch')?.addEventListener('input', applyLogFil
 document.getElementById('moduleFilter')?.addEventListener('change', applyLogFilters);
 </script>
 
-<?php require_once __DIR__ . '/includes/admin_footer.php'; ?>
+<?php require_once __DIR__ . '/../../includes/admin_footer.php'; ?>

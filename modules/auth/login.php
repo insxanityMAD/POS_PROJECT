@@ -1,10 +1,22 @@
 <?php
 declare(strict_types=1);
 session_start();
+require_once __DIR__ . '/../../includes/base_url.php';
 
 // If already logged in, skip straight to the right panel
 if (!empty($_SESSION['user_id'])) {
-    header('Location: ' . ($_SESSION['role_name'] === 'Admin' ? 'admin_dashboard.php' : 'staff_panel.php'));
+    switch ($_SESSION['role_name'] ?? '') {
+        case 'Admin':
+        case 'Manager':
+            header('Location: ' . BASE_URL . '/admin_dashboard.php');
+            break;
+        case 'Cashier':
+            header('Location: ' . BASE_URL . '/modules/pos/pos_sales.php');
+            break;
+        default:
+            header('Location: staff_panel.php'); // same folder as this script
+            break;
+    }
     exit;
 }
 
@@ -272,6 +284,26 @@ unset($_SESSION['login_error'], $_SESSION['old_username']);
         .brand-panel{ display:none; }
         .form-panel{ padding:24px; }
     }
+
+    /* ---------- MOTION ---------- */
+    @keyframes loginFadeUp{ from{ opacity:0; transform:translateY(16px); } to{ opacity:1; transform:translateY(0); } }
+    @keyframes loginFadeIn{ from{ opacity:0; } to{ opacity:1; } }
+    @keyframes loginDrift{ from{ transform:rotate(20deg) scale(1); } to{ transform:rotate(24deg) scale(1.04); } }
+
+    @media (prefers-reduced-motion: reduce){
+        *, *::before, *::after{ animation-duration:.001ms !important; transition-duration:.001ms !important; }
+    }
+
+    .brand-panel::before{ animation:loginDrift 9s ease-in-out infinite alternate; }
+    .brand-top{ animation:loginFadeUp .5s cubic-bezier(.2,.8,.2,1) both; }
+    .brand-bottom{ animation:loginFadeUp .6s cubic-bezier(.2,.8,.2,1) .08s both; }
+    .auth-card{ animation:loginFadeIn .5s ease .1s both; }
+    .input-wrap{ transition:border-color .15s ease, box-shadow .15s ease; }
+    .input-wrap:focus-within{ box-shadow:0 0 0 3px rgba(228,0,43,.1); }
+    .btn-signin{ transition:background .15s ease, opacity .15s ease, transform .12s ease, box-shadow .15s ease; }
+    .btn-signin:hover:not(:disabled){ transform:translateY(-1px); box-shadow:0 8px 20px rgba(228,0,43,.3); }
+    .btn-signin:active:not(:disabled){ transform:scale(.98); }
+    .toggle-pass{ transition:color .15s ease; }
 </style>
 </head>
 <body>
@@ -351,6 +383,6 @@ unset($_SESSION['login_error'], $_SESSION['old_username']);
 
 </div>
 
-<script src="assets/js/login.js"></script>
+<script src="<?= BASE_URL ?>/assets/js/login.js"></script>
 </body>
 </html>

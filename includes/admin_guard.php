@@ -11,14 +11,14 @@ $allowedRoles = $allowedRoles ?? ['Admin'];
 $currentRole  = $_SESSION['role_name'] ?? '';
 
 if (empty($_SESSION['user_id'])) {
-    header('Location: login.php');
+    header('Location: ' . BASE_URL . '/modules/auth/login.php');
     exit;
 }
 
 if (!in_array($currentRole, $allowedRoles, true)) {
     // Logged in, just not allowed on this page - send them somewhere valid
     // instead of bouncing them back to the login screen.
-    header('Location: ' . ($currentRole === 'Cashier' ? 'pos_sales.php' : 'staff_panel.php'));
+    header('Location: ' . BASE_URL . ($currentRole === 'Cashier' ? '/modules/pos/pos_sales.php' : '/modules/auth/staff_panel.php'));
     exit;
 }
 

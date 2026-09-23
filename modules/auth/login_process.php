@@ -1,8 +1,8 @@
 <?php
 declare(strict_types=1);
 session_start();
-require_once 'config.php';
-require_once 'includes/log_helper.php';
+require_once __DIR__ . '/../../config.php';
+require_once __DIR__ . '/../../includes/log_helper.php';
 
 function backToLogin(string $message, string $username = ''): void
 {
@@ -110,14 +110,14 @@ if ($remember) {
 switch ($user['role_name']) {
     case 'Admin':
     case 'Manager':
-        header('Location: admin_dashboard.php');
+        header('Location: ' . BASE_URL . '/admin_dashboard.php');
         break;
     case 'Cashier':
-        header('Location: pos_sales.php');
+        header('Location: ' . BASE_URL . '/modules/pos/pos_sales.php');
         break;
     case 'Supplier':
     default:
-        header('Location: staff_panel.php');
+        header('Location: staff_panel.php'); // same folder as this script
         break;
 }
 exit;

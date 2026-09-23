@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 $pageTitle = 'Settings';
-require_once __DIR__ . '/includes/admin_header.php';
+require_once __DIR__ . '/../../includes/admin_header.php';
 
 try {
     $taxRates = $pdo->query("SELECT * FROM tax_settings ORDER BY tax_rate")->fetchAll();
@@ -344,4 +344,4 @@ document.querySelectorAll('.qr-settings-form').forEach(form => {
 });
 </script>
 
-<?php require_once __DIR__ . '/includes/admin_footer.php'; ?>
+<?php require_once __DIR__ . '/../../includes/admin_footer.php'; ?>

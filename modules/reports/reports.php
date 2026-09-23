@@ -2,7 +2,7 @@
 declare(strict_types=1);
 $pageTitle = 'Reports';
 $allowedRoles = ['Admin', 'Manager'];
-require_once __DIR__ . '/includes/admin_header.php';
+require_once __DIR__ . '/../../includes/admin_header.php';
 
 // ---------- Shared date range filter (Sales / Discounted Sales / Losses / Income Statement) ----------
 $dateFrom = $_GET['from'] ?? date('Y-m-01'); // start of this month
@@ -431,4 +431,4 @@ document.getElementById('lossForm')?.addEventListener('submit', function (e) {
 });
 </script>
 
-<?php require_once __DIR__ . '/includes/admin_footer.php'; ?>
+<?php require_once __DIR__ . '/../../includes/admin_footer.php'; ?>

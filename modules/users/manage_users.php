@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 $pageTitle = 'Users';
-require_once __DIR__ . '/includes/admin_header.php';
+require_once __DIR__ . '/../../includes/admin_header.php';
 
 try {
     $users = $pdo->query(
@@ -207,4 +207,4 @@ document.querySelectorAll('.js-toggle-user').forEach(btn => {
 });
 </script>
 
-<?php require_once __DIR__ . '/includes/admin_footer.php'; ?>
+<?php require_once __DIR__ . '/../../includes/admin_footer.php'; ?>

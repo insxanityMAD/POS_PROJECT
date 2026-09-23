@@ -2,7 +2,7 @@
 declare(strict_types=1);
 $pageTitle = 'Inventory';
 $allowedRoles = ['Admin', 'Manager'];
-require_once __DIR__ . '/includes/admin_header.php';
+require_once __DIR__ . '/../../includes/admin_header.php';
 
 try {
     $products = $pdo->query(
@@ -513,4 +513,4 @@ submitJsonForm(document.getElementById('categoryForm'), document.getElementById(
 submitJsonForm(document.getElementById('restockForm'), document.getElementById('restockFormMsg'), () => location.reload());
 </script>
 
-<?php require_once __DIR__ . '/includes/admin_footer.php'; ?>
+<?php require_once __DIR__ . '/../../includes/admin_footer.php'; ?>

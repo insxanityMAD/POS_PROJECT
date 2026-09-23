@@ -46,6 +46,11 @@ $role     = $_SESSION['role_name'] ?? 'Staff';
         text-decoration:none; padding:10px 22px; border-radius:8px; font-size:14px;
     }
     a.logout:hover{ opacity:.9; }
+    a.logout{ transition:opacity .15s ease, transform .12s ease; }
+    a.logout:active{ transform:scale(.97); }
+    @keyframes staffFadeUp{ from{ opacity:0; transform:translateY(14px); } to{ opacity:1; transform:translateY(0); } }
+    .card{ animation:staffFadeUp .4s cubic-bezier(.2,.8,.2,1) both; }
+    @media (prefers-reduced-motion: reduce){ .card{ animation-duration:.001ms; } }
 </style>
 </head>
 <body>

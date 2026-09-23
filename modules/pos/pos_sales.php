@@ -2,7 +2,7 @@
 declare(strict_types=1);
 $pageTitle = 'POS / Sales';
 $allowedRoles = ['Admin', 'Manager', 'Cashier'];
-require_once __DIR__ . '/includes/admin_header.php';
+require_once __DIR__ . '/../../includes/admin_header.php';
 
 try {
     $discounts = $pdo->query("SELECT * FROM discount_types WHERE is_active = 1 ORDER BY discount_name")->fetchAll();
@@ -746,4 +746,4 @@ document.addEventListener('keydown', function (e) {
 });
 </script>
 
-<?php require_once __DIR__ . '/includes/admin_footer.php'; ?>
+<?php require_once __DIR__ . '/../../includes/admin_footer.php'; ?>

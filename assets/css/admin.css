@@ -661,3 +661,140 @@ a{ color:inherit; text-decoration:none; }
     cursor:not-allowed;
     filter:grayscale(30%);
 }
+
+/* ================================================================
+   MODERN UI / MOTION LAYER
+   ================================================================ */
+html{ scroll-behavior:smooth; }
+
+@keyframes posFadeInUp{
+    from{ opacity:0; transform:translateY(12px); }
+    to{ opacity:1; transform:translateY(0); }
+}
+@keyframes posFadeIn{
+    from{ opacity:0; }
+    to{ opacity:1; }
+}
+@keyframes posPulse{
+    0%, 100%{ transform:scale(1); }
+    50%{ transform:scale(1.15); }
+}
+
+@media (prefers-reduced-motion: reduce){
+    *, *::before, *::after{
+        animation-duration:.001ms !important;
+        animation-iteration-count:1 !important;
+        transition-duration:.001ms !important;
+        scroll-behavior:auto !important;
+    }
+}
+
+/* ---------- Entrance animation for content cards (replays on tab switch too) ---------- */
+.stat-card, .panel, .quick-action, .alert-card{
+    animation:posFadeInUp .4s cubic-bezier(.2,.8,.2,1) both;
+}
+.stat-grid > .stat-card:nth-child(1){ animation-delay:.02s; }
+.stat-grid > .stat-card:nth-child(2){ animation-delay:.07s; }
+.stat-grid > .stat-card:nth-child(3){ animation-delay:.12s; }
+.stat-grid > .stat-card:nth-child(4){ animation-delay:.17s; }
+.content-grid > .panel:nth-child(1){ animation-delay:.08s; }
+.content-grid > .panel:nth-child(2){ animation-delay:.14s; }
+.quick-grid > .quick-action:nth-child(1){ animation-delay:.04s; }
+.quick-grid > .quick-action:nth-child(2){ animation-delay:.08s; }
+.quick-grid > .quick-action:nth-child(3){ animation-delay:.12s; }
+.quick-grid > .quick-action:nth-child(4){ animation-delay:.16s; }
+.quick-grid > .quick-action:nth-child(5){ animation-delay:.2s; }
+.quick-grid > .quick-action:nth-child(6){ animation-delay:.24s; }
+.alert-grid > .alert-card:nth-child(1){ animation-delay:.04s; }
+.alert-grid > .alert-card:nth-child(2){ animation-delay:.09s; }
+
+/* ---------- Softer depth + hover lift on cards ---------- */
+.stat-card, .panel, .alert-card{
+    box-shadow:0 1px 2px rgba(20,20,20,.04);
+    transition:transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+}
+.stat-card:hover, .alert-card:hover{
+    transform:translateY(-3px);
+    box-shadow:0 10px 24px rgba(20,20,20,.08);
+    border-color:#E3E1D8;
+}
+
+/* ---------- Sidebar nav ---------- */
+.nav-item{ transition:background .18s ease, color .18s ease, transform .12s ease; }
+.nav-item:hover{ transform:translateX(2px); }
+.nav-item .badge{ animation:posPulse 2.4s ease-in-out infinite; }
+
+/* ---------- Topbar depth ---------- */
+.topbar{ box-shadow:0 1px 4px rgba(20,20,20,.03); }
+
+/* ---------- Buttons ---------- */
+.btn{ transition:background .18s ease, transform .12s ease, box-shadow .18s ease, opacity .18s ease; }
+.btn:active:not(:disabled){ transform:scale(.96); }
+.btn-primary{ background:linear-gradient(180deg, #ea1c40, var(--mrdiy-red)); }
+.btn-primary:hover{ box-shadow:0 6px 16px rgba(228,0,43,.3); transform:translateY(-1px); }
+.btn-dark:hover{ transform:translateY(-1px); box-shadow:0 6px 16px rgba(0,0,0,.2); }
+.btn-outline:hover{ transform:translateY(-1px); }
+.quick-action{ transition:border-color .18s ease, background .18s ease, transform .18s ease, box-shadow .18s ease; }
+.quick-action:hover{ box-shadow:0 8px 20px rgba(20,20,20,.07); }
+
+/* ---------- Table rows ---------- */
+.data-table tbody tr{ transition:background .15s ease; }
+.data-table tbody tr:hover{ background:#FBFAF6; }
+
+/* ---------- Tabs ---------- */
+.tab-btn{ transition:color .15s ease, border-color .15s ease; }
+
+/* ---------- Inputs: focus glow ---------- */
+.form-row input, .form-row select, .form-row textarea,
+.search-input-row input, .date-filter-row input[type=date]{
+    transition:border-color .15s ease, box-shadow .15s ease;
+}
+.form-row input:focus, .form-row select:focus, .form-row textarea:focus,
+.search-input-row input:focus, .date-filter-row input[type=date]:focus{
+    box-shadow:0 0 0 3px rgba(228,0,43,.1);
+}
+
+/* ---------- Modal: fade + scale in instead of an instant toggle ---------- */
+.modal-overlay{
+    display:flex;
+    opacity:0;
+    pointer-events:none;
+    transition:opacity .2s ease;
+}
+.modal-overlay.open{ opacity:1; pointer-events:auto; }
+.modal-box{
+    transform:scale(.94) translateY(12px);
+    opacity:0;
+    transition:transform .28s cubic-bezier(.34,1.56,.64,1), opacity .2s ease;
+}
+.modal-overlay.open .modal-box{ transform:scale(1) translateY(0); opacity:1; }
+
+/* ---------- Sidebar backdrop: fade instead of snap ---------- */
+.sidebar-backdrop{
+    display:block;
+    opacity:0;
+    pointer-events:none;
+    transition:opacity .25s ease;
+}
+.sidebar-backdrop.show{ opacity:1; pointer-events:auto; }
+
+/* ---------- Search results / scan preview / QR box ---------- */
+.search-results{
+    display:block;
+    opacity:0;
+    pointer-events:none;
+    transform:translateY(-6px);
+    transition:opacity .15s ease, transform .15s ease;
+}
+.search-results.open{ opacity:1; pointer-events:auto; transform:translateY(0); }
+.scan-preview.show, .qr-box.show{ animation:posFadeIn .25s ease; }
+
+/* ---------- Payment option select ---------- */
+.payment-option{ transition:border-color .15s ease, background .15s ease, transform .12s ease; }
+.payment-option.selected{ transform:scale(1.02); }
+
+/* ---------- Cart rows: subtle feedback on every add/update ---------- */
+#cartBody tr{ animation:posFadeInUp .25s ease; }
+
+/* ---------- Toast: springier entrance ---------- */
+.toast-bubble{ transition:opacity .3s cubic-bezier(.34,1.56,.64,1), transform .3s cubic-bezier(.34,1.56,.64,1); }

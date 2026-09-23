@@ -2,7 +2,7 @@
 declare(strict_types=1);
 $pageTitle = 'Payroll';
 $allowedRoles = ['Admin', 'Manager'];
-require_once __DIR__ . '/includes/admin_header.php';
+require_once __DIR__ . '/../../includes/admin_header.php';
 
 try {
     $payPeriods = $pdo->query("SELECT * FROM pay_periods ORDER BY start_date DESC")->fetchAll();
@@ -458,4 +458,4 @@ document.querySelectorAll('.js-view-payroll').forEach(btn => {
 });
 </script>
 
-<?php require_once __DIR__ . '/includes/admin_footer.php'; ?>
+<?php require_once __DIR__ . '/../../includes/admin_footer.php'; ?>

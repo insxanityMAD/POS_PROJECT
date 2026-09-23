@@ -1,8 +1,8 @@
 <?php
 declare(strict_types=1);
 $allowedRoles = ['Admin', 'Manager'];
-require_once __DIR__ . '/includes/admin_guard.php';
-require_once __DIR__ . '/includes/log_helper.php';
+require_once __DIR__ . '/../../includes/admin_guard.php';
+require_once __DIR__ . '/../../includes/log_helper.php';
 
 header('Content-Type: application/json');
 

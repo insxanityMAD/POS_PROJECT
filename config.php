@@ -6,6 +6,8 @@
 
 declare(strict_types=1);
 
+require_once __DIR__ . '/includes/base_url.php';
+
 // Match PHP's clock to local time (Philippines) so time-ago calculations
 // line up correctly with timestamps MySQL stores using the server's local time.
 date_default_timezone_set('Asia/Manila');

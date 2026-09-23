@@ -74,19 +74,19 @@ $isAdmin = ($_SESSION['role_name'] ?? '') === 'Admin';
 
 $quickActions = $isAdmin
     ? [
-        ['manage_users.php', '👥', 'Users', 'Manage access', true],
-        ['manage_products.php', '📦', 'Products', 'Update catalog', false],
-        ['manage_suppliers.php', '🚚', 'Suppliers', 'Vendor directory', false],
-        ['manage_tax.php', '%', 'Tax', 'Configure rates', false],
-        ['manage_discounts.php', '🏷️', 'Discounts', 'Create promotion', false],
-        ['manage_qr_payments.php', '📱', 'QR payments', 'Payment settings', false],
+        [BASE_URL . '/modules/users/manage_users.php', '👥', 'Users', 'Manage access', true],
+        [BASE_URL . '/modules/settings/manage_products.php', '📦', 'Products', 'Update catalog', false],
+        [BASE_URL . '/modules/suppliers/manage_suppliers.php', '🚚', 'Suppliers', 'Vendor directory', false],
+        [BASE_URL . '/modules/settings/manage_tax.php', '%', 'Tax', 'Configure rates', false],
+        [BASE_URL . '/modules/settings/manage_discounts.php', '🏷️', 'Discounts', 'Create promotion', false],
+        [BASE_URL . '/modules/settings/manage_qr_payments.php', '📱', 'QR payments', 'Payment settings', false],
     ]
     : [
-        ['pos_sales.php', '🛒', 'POS', 'Start a sale', true],
-        ['inventory.php', '📦', 'Inventory', 'View & restock', false],
-        ['manage_suppliers.php', '🚚', 'Suppliers', 'Vendor directory', false],
-        ['payroll.php', '💵', 'Payroll', 'Process pay', false],
-        ['reports.php', '📈', 'Reports', 'View reports', false],
+        [BASE_URL . '/modules/pos/pos_sales.php', '🛒', 'POS', 'Start a sale', true],
+        [BASE_URL . '/modules/inventory/inventory.php', '📦', 'Inventory', 'View & restock', false],
+        [BASE_URL . '/modules/suppliers/manage_suppliers.php', '🚚', 'Suppliers', 'Vendor directory', false],
+        [BASE_URL . '/modules/payroll/payroll.php', '💵', 'Payroll', 'Process pay', false],
+        [BASE_URL . '/modules/reports/reports.php', '📈', 'Reports', 'View reports', false],
     ];
 ?>
 <div class="page-eyebrow">OPERATIONS OVERVIEW</div>
@@ -162,7 +162,7 @@ $quickActions = $isAdmin
                 <h2>System activity</h2>
                 <p>Latest updates from your team.</p>
             </div>
-            <?php if ($isAdmin): ?><a href="logs.php" class="view-all">View all logs</a><?php endif; ?>
+            <?php if ($isAdmin): ?><a href="<?= BASE_URL ?>/modules/logs/logs.php" class="view-all">View all logs</a><?php endif; ?>
         </div>
 
         <?php if (empty($recentActivity) && $lowStock === 0): ?>

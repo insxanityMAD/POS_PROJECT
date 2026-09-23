@@ -1,27 +1,40 @@
-# MR. DIY Login System - Setup
+# MR. DIY POS / Computer Accounting System — Setup
 
-## Files
-- `config.php` — PDO database connection. Update `DB_HOST`, `DB_NAME`, `DB_USER`, `DB_PASS`.
-- `login.php` — the sign-in page (HTML/CSS matching your Figma design).
-- `assets/js/login.js` — front-end validation only (email format, password length, show/hide password). It never talks to the database directly.
-- `login_process.php` — PHP script the form submits to. This is what actually connects to the database, checks the credentials, and does the role-based redirect.
-- `admin_dashboard.php` — landing page for `role_name = 'Admin'`.
-- `staff_panel.php` — landing page for everyone else (Manager / Cashier / Supplier).
-- `logout.php` — destroys the session.
-- `create_test_user.php` — one-time script to insert a test Admin with a correctly hashed password.
+## Project structure
+```
+config.php                  DB connection + BASE_URL setup (required by nearly everything)
+index.php                   Redirects to the login page
+includes/                   Shared code: header/footer shell, role+CSRF guard, activity logger
+assets/                     CSS, JS, images (shared across all pages)
+modules/
+  auth/                     login.php, login_process.php, logout.php, staff_panel.php
+  pos/                      pos_sales.php, pos_actions.php
+  inventory/                inventory.php, inventory_actions.php
+  suppliers/                manage_suppliers.php, supplier_actions.php
+  payroll/                  payroll.php, payroll_actions.php
+  expenses/                 expenses.php, expense_actions.php
+  reports/                  reports.php, report_actions.php
+  settings/                 settings.php, settings_actions.php, and the manage_tax/
+                             manage_discounts/manage_qr_payments/manage_products
+                             redirect shortcuts used by the dashboard's quick actions
+  users/                    manage_users.php, user_actions.php
+  logs/                     logs.php
+```
+Every page under `modules/` is a paired view + JSON action-handler file living in the same folder (e.g. `pos_sales.php` calls `pos_actions.php` as a sibling), so most internal links are plain relative paths. Cross-folder links (sidebar nav, login redirects, the dashboard's quick actions) go through the `BASE_URL` constant defined in `includes/base_url.php` so the app keeps working regardless of what the project folder is named or how deep a page lives.
 
-## Why passwords weren't logging in from your SQL dump
-Your `pos_computer_accounting.sql` has no seed rows in the `users` table, and even if it did, storing plain-text passwords won't work with this system. PHP's `password_verify()` requires the password to have been created with `password_hash()`. Steps:
-
-1. Import `pos_computer_accounting.sql` into MySQL/MariaDB.
-2. Put all these files in your web root (e.g. `htdocs/mr_diy_login/` for XAMPP).
+## Setup
+1. Import `MySQL DB/pos_computer_accounting (1).sql` into MySQL/MariaDB.
+2. Put this whole folder in your web root (e.g. `htdocs/POS-PROJECT/` for XAMPP).
 3. Update the DB credentials in `config.php`.
-4. Visit `create_test_user.php` once in your browser to create a working Admin login (`admin` / `Admin123!`), then delete that file.
-5. Go to `login.php` and sign in.
+4. Visit `index.php` (or `modules/auth/login.php` directly) and sign in.
+
+## Passwords
+Passwords are stored with `password_hash()`/`password_verify()`. Any account still carrying a plain-text password from the original SQL dump is transparently upgraded to a hash the next time it logs in successfully — no migration step needed. New/edited accounts (via the Users page) are always hashed on save.
 
 ## How the role check works
 `login_process.php` joins `users` to `roles` on `role_id`, reads `role_name`, and redirects:
-- `Admin` → `admin_dashboard.php`
-- anything else (`Manager`, `Cashier`, `Supplier`) → `staff_panel.php`
+- `Admin` / `Manager` → `admin_dashboard.php` (Manager's sidebar hides Settings/Users/Logs)
+- `Cashier` → `modules/pos/pos_sales.php` directly — POS is the only thing a cashier account can reach
+- `Supplier` (or anything else) → `modules/auth/staff_panel.php`, a placeholder landing page
 
-You can split those further into their own pages later by adding more `case` branches in the `switch` statement.
+Every page under `modules/` declares `$allowedRoles = [...]` before requiring `includes/admin_guard.php`, which enforces both the role check and CSRF verification on POST requests. Pages that don't set `$allowedRoles` default to Admin-only.

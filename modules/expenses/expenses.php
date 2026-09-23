@@ -2,7 +2,7 @@
 declare(strict_types=1);
 $pageTitle = 'Expenses';
 $allowedRoles = ['Admin', 'Manager'];
-require_once __DIR__ . '/includes/admin_header.php';
+require_once __DIR__ . '/../../includes/admin_header.php';
 
 try {
     $expenses = $pdo->query(
@@ -259,4 +259,4 @@ document.querySelectorAll('.js-delete-expense').forEach(btn => {
 });
 </script>
 
-<?php require_once __DIR__ . '/includes/admin_footer.php'; ?>
+<?php require_once __DIR__ . '/../../includes/admin_footer.php'; ?>
